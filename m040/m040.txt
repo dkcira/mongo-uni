@@ -1,0 +1,3 @@
+
+# start up mongod processes
+mongod --version
