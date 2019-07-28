@@ -1,5 +1,8 @@
+##########################################
 # m040 notes
+##########################################
 
+##########################################
 # copy setup file to m040/shared/
 ls -1 m040/shared
 rs1_linux.conf
@@ -30,9 +33,9 @@ build environment:
 mkdir -p /data/db/m040/repl/{1,2,3}
 
 # start up mongod processes
-mongod -f /shared/rs1_linux.conf
-mongod -f /shared/rs2_linux.conf
-mongod -f /shared/rs3_linux.conf
+mongod -f /shared/initial_setup/rs1_linux.conf
+mongod -f /shared/initial_setup/rs2_linux.conf
+mongod -f /shared/initial_setup/rs3_linux.conf
 
 # initiate the replicaset
 mongo --eval 'rs.initiate()'
@@ -57,7 +60,7 @@ mongo --eval 'rs.status()'
 
 
 # make sure you have setup the cluster correctly
-mongo --quiet /shared/validate_lab1.js
+mongo --quiet /shared/initial_setup/validate_lab1.js
 
 Great Job! Your validation code is:
 1602589782
@@ -73,3 +76,78 @@ In cases where there is a significant amount of write operations in one single t
 
 There are no practical limits to the number of documents that can be read in a transaction. There's only the limit of up to 1000 documents modified in a single transaction. For those cases, we should split the transaction across several transactions.
 
+Q:
+Which of the following statements are correct?
+A:
+Reads can still occur while a write lock is taken.
+The correct answer is:
+Reads can still occur when a write lock is taken.
+A write lock does not affect the read availablity of documents. Only writes may be affected, if there is concurrency over the same documents, or if a write lock is taken by a transaction.
+All other options are incorrect.
+
+All writes not in a transaction context will be applied before the transaction write lock are released.
+This is incorrect, operations wait until the transaction aborts or commits.
+
+All writes not in a transaction context will fail while a transaction is taking place.
+This is incorrect, operations wait until the transaction aborts or commits.
+
+Q: Abort vs Commit. Problem: What can cause TransientTransactionError to occur?
+
+A:
+Network failures
+WriteConflict errors
+
+The cases where TransientTransactionError can occur are related with:
+Network failures
+Network failures may be related with server-client communication failure or abnormal issues with the network layer.
+WriteConflict errors
+WriteConflict will be detected when two concurrent transactions try to write to the same document, where one of those transactions acquires the document lock and subsequent requests from other transactions will result in WriteConflict errors raised.
+
+All other options are incorrect.
+
+
+##########################################
+# Lab: Error Handling
+
+Problem:
+
+In this lab we will be exploring error handling related with transaction support.
+
+As for handouts of this lab, you can find two files:
+
+loader.py
+data.json
+Handouts Description
+
+loader.py is a script that does the following set of steps:
+
+connects to a MongoDB replica set (by default running on this course m040 VM).
+mongodb://m040:27017/m040?replicaSet=M040
+
+Drops any previous existing data in the m040.cities and m040.city_stats collections.
+Opens the data.json file and process it in batches. Each batch is processed by its own thread/process to simulate concurrent database write load.
+Each batch process starts a session.
+For each session, a transaction gets initiated:
+Writes the batch of city documents into m040.cities collection.
+Updates the m040.city_stats total population field.
+The data.json is json file that contains one hundred imaginary cities and their (imaginary) population counts.
+Within data.json there are some logical errors, like duplicate keys, which were introduced on purpose. Do not change this file.
+
+Setup
+In order for the loader.py script to execute you will have to have a running replica set, M040.
+Using this course VM, you can set up the replica set by running the following commands:
+
+# setup replicaset
+vagrant up
+vagrant ssh
+
+mongod --dbpath ~/repl/1 --logpath ~/repl/1/log --port 27017 --replSet M040 --bind_ip_all --fork
+mongod --dbpath ~/repl/2 --logpath ~/repl/2/log --port 27027 --replSet M040 --bind_ip_all --fork
+mongod --dbpath ~/repl/3 --logpath ~/repl/3/log --port 27037 --replSet M040 --bind_ip_all --fork
+
+mongo --eval 'rs.initiate()'
+mongo --eval 'rs.add("192.168.40.100:27027");rs.add("192.168.40.100:27037")'
+mongo --eval 'conf = rs.conf();conf.members[0].host="192.168.40.100:27017";rs.reconfig(conf);'
+
+# run the python
+cd /shared/lab_transactions/
