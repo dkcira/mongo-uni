@@ -1,3 +1,75 @@
+# m040 notes
+
+# copy setup file to m040/shared/
+ls -1 m040/shared
+rs1_linux.conf
+rs1_win.conf
+rs2_linux.conf
+rs2_win.conf
+rs3_linux.conf
+rs3_win.conf
+validate_lab1.js
+
+# get into vagrant
+vagrant ssh
+
+# mongod version
+mongod --version
+
+db version v4.0.9
+git version: fc525e2d9b0e4bceff5c2201457e564362909765
+OpenSSL version: OpenSSL 1.0.1f 6 Jan 2014
+allocator: tcmalloc
+modules: enterprise 
+build environment:
+    distmod: ubuntu1404
+    distarch: x86_64
+    target_arch: x86_64
+
+# replicaset data dirs
+mkdir -p /data/db/m040/repl/{1,2,3}
 
 # start up mongod processes
-mongod --version
+mongod -f /shared/rs1_linux.conf
+mongod -f /shared/rs2_linux.conf
+mongod -f /shared/rs3_linux.conf
+
+# initiate the replicaset
+mongo --eval 'rs.initiate()'
+MongoDB server version: 4.0.9
+{
+        "info2" : "no configuration specified. Using a default configuration for the set",
+        "me" : "m040:27017",
+        "ok" : 1,
+        "operationTime" : Timestamp(1564333649, 1),
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1564333649, 1),
+                "signature" : {
+                        "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                        "keyId" : NumberLong(0)
+                }
+        }
+}
+
+# add the remaining two nodes to the set
+mongo --eval 'rs.add("m040:27027");rs.add("m040:27037")'
+mongo --eval 'rs.status()'
+
+
+# make sure you have setup the cluster correctly
+mongo --quiet /shared/validate_lab1.js
+
+Great Job! Your validation code is:
+1602589782
+
+ # Quiz
+Q: Which of the following are true in the case of multi-document transaction operations?
+Attempts Remaining:∞Unlimited Attempts
+
+A:
+WiredTiger can proactively evict snapshots and abort transactions if cache pressure thresholds are reached.
+If a transaction takes more than 60 seconds to complete, it will abort.
+In cases where there is a significant amount of write operations in one single transaction (more than 1000 changed documents), the transaction should be broken into smaller sets of operations.
+
+There are no practical limits to the number of documents that can be read in a transaction. There's only the limit of up to 1000 documents modified in a single transaction. For those cases, we should split the transaction across several transactions.
+
