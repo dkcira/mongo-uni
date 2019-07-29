@@ -151,3 +151,77 @@ mongo --eval 'conf = rs.conf();conf.members[0].host="192.168.40.100:27017";rs.re
 
 # run the python
 cd /shared/lab_transactions/
+python3 ./loader.py
+
+Duplicate Key Found: E11000 duplicate key error collection: m040.cities index: _id_ dup key: { : 81 }
+Error - what shall I do ??!??! WriteConflict
+Error - what shall I do ??!??! WriteConflict
+Unexpected error found: WriteConflict
+Unexpected error found: WriteConflict
+Duplicate Key Found: E11000 duplicate key error collection: m040.cities index: _id_ dup key: { : 90 }
+Duplicate Key Found: E11000 duplicate key error collection: m040.cities index: _id_ dup key: { : 41 }
+Documents Inserted: 50
+Total Population: 901563036
+vagrant@m040:/shared/lab_transactions$ 
+
+
+##########################################
+# Server improvements
+
+TLS => Transport Layer Security
+
+PCI DSS => Payment Card Industry Data Security Standard
+NIST    => National Institute for Standards and Technology
+FIPS    => Federal Information Processing Standard
+
+MongoDB 4.0 support TLS1.2 for all communication between client, drivers, server, and internal cluster communication between nodes. No special upgrade or downgrade procedures are required.
+
+TLS:
+- Your data should be securely encrypted in transit to prevent unauthorized access to it via the network.
+- TLS certificates can be used as a means of securely confirming the identity of an entity attempting to access your data.
+- Without it, you may fail to meet corporate security policies which can in turn prevent your applications from going into production.
+
+
+# MongoDB 4.0 authentication enhancements
+- MongoDB CR authentication is removed and deprecated
+- SCRAM-SHA1 was introduced in 2015 (Mongo 3.0) => upgrade to this is needed before upgrading to MongoDB 4.0
+- SCRAM-SHA-256 authentication mechanism added. You should only use this, exclusively.
+- If you enabled SCRAM-SHA1, automatic upgrade to SCRAM-SHA-256. New users will use it by default. => Authentication mechanism server parameter
+
+- command to list users that do not have scram-sha-256 support yet
+db.runCommand(
+    {usersInfo:{forAllDBs:true}},
+    filter:{
+        mechanisms:{$ne:"SCRAM-SHA-256"}
+        }
+)
+- In MongoDB4.0 just resetting the password will add scram-sha-256 support
+db.updateUser("oldmatt", {pwd: "pass"})
+- The users should change the password, not the DBA, since he should not know their passwords.
+
+# Change Stream
+db.collection.watch() <= for collection
+db.watch() <= for whole db
+also for cluster, regardless of the db 
+
+Quiz
+The correct answers are:
+
+Listen for changes in documents across all collections in a database
+Correct, in MongoDB 4.0 a change stream can be set to listen to changes across all collections in a database
+
+Listen for changes across a cluster
+Correct, this is also something new that MongoDB 4.0 allows.
+
+Change Event document provides information on txnNumber
+Correct, if documents have been changed within the execution of a transaction, the Change Event will contain the field txnNumber
+
+All other options are incorrect.
+
+Resume a change stream
+
+This feature has been available since the inception of Change Streams.
+
+Open a change stream to track update operations only
+
+Change streams have always allowed to get change events on operation type including updates.
