@@ -314,5 +314,46 @@ In our solution, we use $unwind to unwind the turnstiles array.
 
 We then group all documents together, and sum the values of the turnstile.count field. If this field is missing it will be handled by the onNull clause, and if this field can't be converted to an int it will be handled by our onError clause.
 
+##########################################
+# MongoDB Compass
 
+Quiz
+Q: Which of the following is/are new features in Compass?
 
+Aggregation Pipeline Builder.
+This is correct.
+This feature dramatically decreases the time it takes to write an aggregation pipeline.
+
+Read-Only Compass Edition.
+This is correct.
+Use this edition for users who only need to browse the documents, and have no need in editing them.
+
+Export Queries into Programming Language Code.
+This is correct.
+Compass can translate the queries from its graphical user interface to the most popular programming languages like: Java, JavaScript, Python and C#.
+
+Import and Export from/to JSON and CSV files.
+This is correct.
+This was the most requested feature, and now Compass has it. So, ensure you transmit us your feedback on the tool, because we are listening and we want to hear form you!
+
+Translator of text fields into 100 languages.
+This is incorrect.
+That would be cool, however it is not one of the existing or new functionality in Compass.
+
+Q: What are some features and advantages of using the Aggregation Pipeline Builder versus writing the pipeline with the Mongo Shell?
+
+Compass can translate the aggregation pipeline to the SQL equivalent.
+This is incorrect.
+It is not clear what would be the advantage of having such SQL statement, because the pipeline is designed with your document shape in mind.
+
+Compass gives you a list of available stage names in a dropdown menu.
+This is correct.
+
+Compass informs you that a pipeline stage is correctly formed or has syntax errors.
+This is correct.
+
+With each stage, Compass displays examples of documents produced by the pipeline up to the given stage of the pipeline.
+This is correct.
+
+Compass can save pipelines to edit and use them later.
+This is correct.
