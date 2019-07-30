@@ -357,3 +357,14 @@ This is correct.
 
 Compass can save pipelines to edit and use them later.
 This is correct.
+
+##########################################
+# ODBC driver
+
+https://www.microsoft.com/en-us/download/details.aspx?id=56029
+
+Username: bic-user
+Password: BicCool
+Server: bic-sandbox-biconnector-gnkz6.mongodb.net
+Port: 27015
+Database: nba
