@@ -225,3 +225,94 @@ This feature has been available since the inception of Change Streams.
 Open a change stream to track update operations only
 
 Change streams have always allowed to get change events on operation type including updates.
+
+##########################################
+# Aggregation Framework  Improvements
+
+# Lab: Type Conversions
+vagrant up
+vagrant ssh
+
+mongod --dbpath ~/repl/1 --logpath ~/repl/1/log --port 27017 --replSet M040 --bind_ip_all --fork
+mongod --dbpath ~/repl/2 --logpath ~/repl/2/log --port 27027 --replSet M040 --bind_ip_all --fork
+mongod --dbpath ~/repl/3 --logpath ~/repl/3/log --port 27037 --replSet M040 --bind_ip_all --fork
+
+mongo --eval 'rs.initiate()'
+mongo --eval 'rs.add("192.168.40.100:27027");rs.add("192.168.40.100:27037")'
+mongo --eval 'conf = rs.conf();conf.members[0].host="192.168.40.100:27017";rs.reconfig(conf);'
+
+mongoimport --host M040/$(hostname):27017,$(hostname):27027,$(hostname):27037 -d sensor -c data < /shared/lab_typeconversions/sensor_data.json
+
+2019-07-30T04:54:43.169+0000	connected to: M040/m040:27017,m040:27027,m040:27037
+2019-07-30T04:54:43.242+0000	imported 31 documents
+
+# initial code
+db.data.aggregate([
+  {
+    "$unwind": "$turnstile"
+  },
+  {
+    "$group": {
+      "_id": 0,
+      "sum": {
+        "$sum": {
+        <your code here!!>
+        }
+      }
+    }
+  }
+])
+
+# my (correct) solution
+db.data.aggregate([
+  {
+    "$unwind": "$turnstile"
+  },
+  {
+    "$group": {
+      "_id": 0,
+      "sum": {
+        "$sum": {
+                $convert: {
+                        input: "$turnstile.count",
+                        to: "int",
+                        onError: 0
+                }
+        }
+      }
+    }
+  }
+])
+
+{ "_id" : 0, "sum" : 281245 }
+
+# official solution
+db.data.aggregate([
+  {
+    "$unwind": "$turnstile"
+  },
+  {
+    "$group": {
+      "_id": 0,
+      "sum": {
+        "$sum": {
+          "$convert": {
+            "input": "$turnstile.count",
+            "to": "int",
+            "onError": 0,
+            "onNull": 0
+          }
+        }
+      }
+    }
+  }
+])
+
+You may have reached the same result with a different pipeline and using a different set of aggregation stages (congratulations!) but the important thing is understanding the data conversion necessary to calculate the sum.
+
+In our solution, we use $unwind to unwind the turnstiles array.
+
+We then group all documents together, and sum the values of the turnstile.count field. If this field is missing it will be handled by the onNull clause, and if this field can't be converted to an int it will be handled by our onError clause.
+
+
+
