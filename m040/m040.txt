@@ -388,3 +388,47 @@ mongo --eval 'conf = rs.conf();conf.members[0].host="192.168.40.100:27017";rs.re
 
 mongoimport --host M040/$(hostname):27017,$(hostname):27027,$(hostname):27037 -d m040 -c companies < /shared/lab_excelwithodbc/companies.json
 
+2019-07-31T04:55:14.781+0000	connected to: M040/m040:27017,m040:27027,m040:27037
+2019-07-31T04:55:16.248+0000	imported 8084 documents
+
+mongosqld --addr 192.168.40.100:3307 --mongo-uri mongodb://$(hostname):27017,$(hostname):27027,$(hostname):27037/?replicaSet=M040&ssl=true
+
+---
+Chapter 6: ODBC Driver for BI Connector
+
+Lab - Using Excel with the ODBC Driver
+Problem:
+
+Note: This lab uses 64-bit Microsoft Excel (2016 or later). If you do not have a license to use MS Excel, you can open the handout in an open source 64-bit alternative.
+
+Note: iODBC is required by Microsoft Excel, however it is not recommended for creating or modifying your Data Source Name (DSN). To create or modify your DSN, use the ODBC Manager application that is included with the MongoDB ODBC driver.
+
+Well, now that we've discussed the new features in the BI Connector, it's time to try them out! Using the new ODBC Driver, we can import data directly into a Microsoft Excel spreadsheet.
+
+Below are the instructions to do so; you may choose not to use Vagrant, in which case the "Inside Vagrant" steps should be completed on your host machine:
+
+Inside Vagrant...
+
+Start up a replica set with three nodes.
+Import the dataset /dataset/companies.json into the replica set, to the namespace m040.companies.
+Start up a mongosqld process with the following flags (mongosqld has been loaded into Vagrant as an executable, and can be run by typing mongosqld from the command line):
+Use the --addr option to bind it to the IP address 192.168.40.100:3307 (this is necessary in order for the ODBC driver to communicate with the BI Connector while the BIC is running inside Vagrant!)
+Use the --mongo-uri option to specify the replica set (this must be a valid URI string that specifies the entire replica set - read the docs if you need a refresher!)
+On your host machine...
+
+If you are using a Linux or MacOS machine, download iODBC and the companies.json.tgz dataset file.
+Open the ODBC Manager and add a new "System DSN" with the MongoDB UNICODE ODBC and following keywords (your keywords may be different if you change the port where mongosqld is running, or the database of the companies dataset):
+SERVER: 192.168.40.100
+PORT: 3307
+DATABASE: m040
+Download the Microsoft Excel handout - there should be a sheet called company_calculations with two columns, and a sheet called companies which is empty
+In the empty sheet called companies, import the data from the companies collection. Do not change any of this data; just return all of the data to the sheet.
+The Excel sheet companies should now contain all the data from the companies dataset. In order to check that you imported all the data correctly, look at the sheet company_calculations - the "Size of Largest Company" column should now contain the number of employees at the biggest company in each industry.
+
+If you accidentally delete the companies sheet, re-download the handout and reimport the data from MongoDB into Excel.
+
+Question:
+
+How many employees work at the biggest company in the advertising industry?
+---
+A: 3160
