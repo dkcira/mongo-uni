@@ -368,3 +368,23 @@ Password: BicCool
 Server: bic-sandbox-biconnector-gnkz6.mongodb.net
 Port: 27015
 Database: nba
+
+
+
+
+
+# Lab: Using Excel with the ODBC Driver
+vagrant up
+vagrant ssh
+
+mongod --dbpath ~/repl/1 --logpath ~/repl/1/log --port 27017 --replSet M040 --bind_ip_all --fork
+mongod --dbpath ~/repl/2 --logpath ~/repl/2/log --port 27027 --replSet M040 --bind_ip_all --fork
+mongod --dbpath ~/repl/3 --logpath ~/repl/3/log --port 27037 --replSet M040 --bind_ip_all --fork
+
+mongo --eval 'rs.initiate()'
+mongo --eval 'rs.add("192.168.40.100:27027");rs.add("192.168.40.100:27037")'
+mongo --eval 'conf = rs.conf();conf.members[0].host="192.168.40.100:27017";rs.reconfig(conf);'
+
+
+mongoimport --host M040/$(hostname):27017,$(hostname):27027,$(hostname):27037 -d m040 -c companies < /shared/lab_excelwithodbc/companies.json
+
